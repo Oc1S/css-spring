@@ -14,15 +14,19 @@ type Data = {
   value: number;
 };
 
-export const formatNumber = (num: number) => {
+const numPattern = /\d+\.?\d*/g;
+
+const formatNumber = (num: number) => {
   return +num.toFixed(2);
 };
 
-const config: Omit<Parameters<typeof spring>[0], 'keyframes'> = {
+const defaultConfig: Omit<Parameters<typeof spring>[0], 'keyframes'> = {
   duration: 800,
 };
 
 function Home() {
+  const [config, setConfig] = useState(defaultConfig);
+
   const [info, setInfo] = useState({
     initial: true,
     min: 0,
@@ -41,8 +45,8 @@ function Home() {
     const duration = 500;
 
     const generator = spring({
-      keyframes: [0, 100],
-      // bounce: 0,
+      keyframes: [0, 200],
+      bounce: 0.5,
       duration,
       // visualDuration: duration / 1_000,
     });
@@ -56,16 +60,35 @@ function Home() {
       },
     });
 
+    const stringArr = generator
+      .toString()
+      .split(' ')
+      .slice(1)
+      .join('')
+      .match(numPattern);
+    if (!stringArr) return;
+
+    const numbers = stringArr.map((numString) => {
+      return formatNumber(+numString);
+    });
+
+    const percent = formatNumber(1 / (numbers.length - 1));
+    const toPercent = (num: number) => `${num * 100}%`;
     setKeyPoints(list);
     setInfo({
       initial: false,
       min,
       max,
       duration,
-      result: generator.toString(),
+      result: `
+@keyframes spring-animation {
+ ${toPercent(percent)}{
+ }
+}
+      `,
     });
 
-    console.log(endDuration, list, generator.toString().split(','));
+    console.log(endDuration, list, generator.toString(), numbers);
   }, []);
 
   return (
