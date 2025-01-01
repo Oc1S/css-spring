@@ -1,0 +1,3 @@
+.demo {
+  left: 500ms linear(0, 20, 100);
+}
