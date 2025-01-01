@@ -1,36 +1,25 @@
 'use client';
 
-import { Code, NextUIProvider } from '@nextui-org/react';
-import { spring } from 'motion';
 import React, { useEffect, useState } from 'react';
-import { Chart } from './components/line-chart';
+import { NextUIProvider } from '@nextui-org/react';
+import { spring } from 'motion';
+
 import { ClientOnly } from './components/client-only';
+import { CodeBlock } from './components/code-block';
+import { Chart } from './components/line-chart';
 import { generate } from './utils/generate-easing';
-import { Copy } from './components/copy';
 
 type Data = {
   time: number;
   value: number;
 };
 
-const formatNumber = (num: number) => {
+export const formatNumber = (num: number) => {
   return +num.toFixed(2);
 };
 
 const config: Omit<Parameters<typeof spring>[0], 'keyframes'> = {
   duration: 800,
-};
-
-const CodeBlock = ({ children }: { children: string }) => {
-  return (
-    <div className="group relative w-2/5 break-all rounded bg-[#1a1a1a] p-4 pr-12 font-mono transition">
-      <Copy
-        content={children}
-        className="absolute right-4 top-4 opacity-0 transition group-hover:opacity-100"
-      ></Copy>
-      {children}
-    </div>
-  );
 };
 
 function Home() {
@@ -80,7 +69,7 @@ function Home() {
   }, []);
 
   return (
-    <div className="grid min-h-screen items-center justify-items-center gap-16 p-8 pb-10 font-[family-name:var(--font-geist-sans)]">
+    <div className="flex min-h-screen flex-col items-center justify-items-center gap-20 p-8 pt-32">
       <div className="flex flex-col gap-2 py-4">
         {initial || (
           <>
@@ -89,11 +78,10 @@ function Home() {
                 {key}:{value}
               </div>
             ))}
-            <CodeBlock>{result}</CodeBlock>
           </>
         )}
       </div>
-      <div>
+      <div className="flex justify-center gap-8">
         {/* <div
           className="demo h-40 w-40 bg-white"
           onClick={(e) => {
@@ -112,6 +100,7 @@ function Home() {
         <ClientOnly>
           {() => <Chart data={keyPoints} keys="value"></Chart>}
         </ClientOnly>
+        <CodeBlock>{result}</CodeBlock>
       </div>
     </div>
   );

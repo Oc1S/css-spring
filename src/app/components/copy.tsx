@@ -1,9 +1,9 @@
-import copy from 'copy-to-clipboard';
-
-import { Check, Clipboard } from './icons';
 import { useEffect, useRef, useState } from 'react';
+import copy from 'copy-to-clipboard';
 import { AnimatePresence, motion as motion } from 'framer-motion';
+
 import { cx } from '../utils';
+import { Check, Clipboard } from './icons';
 
 const variants = {
   visible: { opacity: 1, scale: 1 },
@@ -24,7 +24,7 @@ export const Copy: React.FC<
   const { className, onClick, content, ...rest } = props;
   const [copying, setCopying] = useState(false);
 
-  let timerRef = useRef<ReturnType<typeof setTimeout>>(null);
+  const timerRef = useRef<ReturnType<typeof setTimeout>>(null);
 
   const crearTimer = () => {
     clearTimeout(timerRef.current!);
@@ -42,7 +42,7 @@ export const Copy: React.FC<
 
   useEffect(() => {
     return () => crearTimer();
-  });
+  }, []);
 
   return (
     <button
