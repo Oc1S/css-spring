@@ -4,10 +4,10 @@ import React, { useEffect, useState } from 'react';
 import { NextUIProvider } from '@nextui-org/react';
 import { spring } from 'motion';
 
-import { ClientOnly } from './components/client-only';
-import { CodeBlock } from './components/code-block';
-import { Chart } from './components/line-chart';
-import { generate } from './utils/generate-easing';
+import { ClientOnly } from '../components/client-only';
+import { CodeBlock } from '../components/code-block';
+import { Chart } from '../components/line-chart';
+import { generate } from '../utils/generate-easing';
 
 type Data = {
   time: number;
@@ -15,6 +15,7 @@ type Data = {
 };
 
 const numPattern = /\d+\.?\d*/g;
+const toPercent = (num: number) => `${(num * 100).toFixed(0)}%`;
 
 const formatNumber = (num: number) => {
   return +num.toFixed(2);
@@ -72,20 +73,28 @@ function Home() {
       return formatNumber(+numString);
     });
 
-    const percent = formatNumber(1 / (numbers.length - 1));
-    const toPercent = (num: number) => `${num * 100}%`;
+    const percent = 1 / (numbers.length - 1);
+
+    numbers.forEach((_, i) => {
+      console.log(`${toPercent(percent * i)}: ${numbers[i]}`);
+    });
+
+    const result = `
+@keyframes spring-animation {
+${numbers.map(
+  (_, i) => `${toPercent(percent * i)} {
+   ${numbers[i]}
+}`
+)}
+}`;
+
     setKeyPoints(list);
     setInfo({
       initial: false,
       min,
       max,
       duration,
-      result: `
-@keyframes spring-animation {
- ${toPercent(percent)}{
- }
-}
-      `,
+      result,
     });
 
     console.log(endDuration, list, generator.toString(), numbers);
