@@ -1,13 +1,4 @@
-import {
-  CartesianGrid,
-  Legend,
-  Line,
-  LineChart,
-  ResponsiveContainer,
-  Tooltip,
-  XAxis,
-  YAxis,
-} from 'recharts';
+import { Legend, Line, LineChart, Tooltip, XAxis, YAxis } from 'recharts';
 
 export const Chart: React.FC<{
   data: any[];
@@ -27,7 +18,7 @@ export const Chart: React.FC<{
       <YAxis />
       <Tooltip
         labelStyle={{
-          color: '#fad657',
+          color: '#eee',
         }}
       />
       <Legend />
@@ -35,8 +26,8 @@ export const Chart: React.FC<{
         return (
           <Line
             key={key}
+            dataKey={key}
             type="monotone"
-            dataKey="value"
             stroke="#fad657"
             dot={false}
             strokeWidth={2}

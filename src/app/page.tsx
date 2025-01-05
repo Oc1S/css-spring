@@ -4,6 +4,9 @@ import React, { useEffect, useState } from 'react';
 import { NextUIProvider } from '@nextui-org/react';
 import { spring } from 'motion';
 
+import { numPattern } from '@/constants';
+import { lastOfArray } from '@/utils';
+
 import { ClientOnly } from '../components/client-only';
 import { CodeBlock } from '../components/code-block';
 import { Chart } from '../components/line-chart';
@@ -14,11 +17,85 @@ type Data = {
   value: number;
 };
 
-const numPattern = /\d+\.?\d*/g;
 const toPercent = (num: number) => `${(num * 100).toFixed(0)}%`;
 
 const formatNumber = (num: number) => {
   return +num.toFixed(2);
+};
+
+const generateKeyFrameString = (arr: Record<'percent' | 'value', number>[]) => {
+  return `@keyframes spring-animation {
+  ${arr.map(
+    ({ percent, value }) => `${toPercent(percent)} {
+    ${value}
+  }`
+  ).join(`
+  `)}
+}`;
+};
+
+const numbersToKeyFrameString = (numbers: number[]) => {
+  const percent = 1 / (numbers.length - 1);
+  return generateKeyFrameString(
+    numbers.map((_, i) => ({
+      percent: percent * i,
+      value: numbers[i],
+    }))
+  );
+};
+
+const indexedValueArrToKeyFrameString = (indexedValues: IndexedValue[]) => {
+  const percent = 1 / (lastOfArray(indexedValues).index - 1);
+  return generateKeyFrameString(
+    indexedValues.map(({ value, index }) => ({
+      percent: percent * index,
+      value,
+    }))
+  );
+};
+
+type IndexedValue = {
+  value: number;
+  index: number;
+};
+
+const getUpAndDowns = (numbers: number[]): IndexedValue[] => {
+  if (numbers.length <= 1)
+    return numbers.map((value, index) => ({
+      value,
+      index,
+    }));
+  const result: IndexedValue[] = [];
+
+  for (let i = 1; i < numbers.length - 1; i++) {
+    const front = numbers[i - 1];
+    const current = numbers[i];
+    const back = numbers[i + 1];
+    const diffFront = front - current;
+    const diffBack = current - back;
+    if (diffFront * diffBack < 0) {
+      result.push({ value: current, index: i });
+    }
+  }
+  return [
+    { value: numbers[0], index: 0 },
+    ...result,
+    { value: lastOfArray(numbers), index: numbers.length - 1 },
+  ];
+};
+
+const getKeyPoints = (gen: KeyframeGenerator<number>) => {
+  const stringArr = gen
+    .toString()
+    .split(' ')
+    .slice(1)
+    .join('')
+    .match(numPattern);
+  if (!stringArr) return [];
+  const numbers = stringArr.map((numString) => {
+    return formatNumber(+numString);
+  });
+  return numbers;
 };
 
 const defaultConfig: Omit<Parameters<typeof spring>[0], 'keyframes'> = {
@@ -52,41 +129,23 @@ function Home() {
       // visualDuration: duration / 1_000,
     });
 
-    const endDuration = generate(generator, {
-      onUpdate: (result, dur) => {
-        const { value } = result;
-        min = Math.min(min, value);
-        max = Math.max(max, value);
-        list.push({ time: dur, value });
-      },
-    });
+    const onUpdate: Parameters<typeof generate>[1]['onUpdate'] = (
+      result,
+      dur
+    ) => {
+      const { value } = result;
+      min = Math.min(min, value);
+      max = Math.max(max, value);
+      list.push({ time: dur, value });
+    };
 
-    const stringArr = generator
-      .toString()
-      .split(' ')
-      .slice(1)
-      .join('')
-      .match(numPattern);
-    if (!stringArr) return;
+    const { list: gList } = generate(generator, { onUpdate, step: 30 });
 
-    const numbers = stringArr.map((numString) => {
-      return formatNumber(+numString);
-    });
+    const numbers = getKeyPoints(generator);
+    const upAndDowns = getUpAndDowns(gList);
 
-    const percent = 1 / (numbers.length - 1);
-
-    numbers.forEach((_, i) => {
-      console.log(`${toPercent(percent * i)}: ${numbers[i]}`);
-    });
-
-    const result = `
-@keyframes spring-animation {
-${numbers.map(
-  (_, i) => `${toPercent(percent * i)} {
-   ${numbers[i]}
-}`
-)}
-}`;
+    const result = numbersToKeyFrameString(numbers);
+    const keyPointString = indexedValueArrToKeyFrameString(upAndDowns);
 
     setKeyPoints(list);
     setInfo({
@@ -94,10 +153,10 @@ ${numbers.map(
       min,
       max,
       duration,
-      result,
+      result: result + keyPointString,
     });
 
-    console.log(endDuration, list, generator.toString(), numbers);
+    console.log(numbers, gList, upAndDowns, keyPointString);
   }, []);
 
   return (
@@ -114,25 +173,12 @@ ${numbers.map(
         )}
       </div>
       <div className="flex justify-center gap-8">
-        {/* <div
-          className="demo h-40 w-40 bg-white"
-          onClick={(e) => {
-            const element = e.currentTarget;
-            element.animate(
-              [{ transform: 'scale(1)' }, { transform: 'scale(2)' }],
-              {
-                duration: 1000,
-                iterations: 1,
-                fill: 'forwards',
-                easing: 'linear(0, 0.1, 1.5)',
-              }
-            );
-          }}
-        ></div> */}
         <ClientOnly>
           {() => <Chart data={keyPoints} keys="value"></Chart>}
         </ClientOnly>
-        <CodeBlock>{result}</CodeBlock>
+        <CodeBlock className="max-h-[400px] overflow-x-hidden overflow-y-scroll">
+          {result}
+        </CodeBlock>
       </div>
     </div>
   );

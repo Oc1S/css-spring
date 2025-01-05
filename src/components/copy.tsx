@@ -9,7 +9,10 @@ const variants = {
   visible: { opacity: 1, scale: 1 },
   hidden: { opacity: 0, scale: 0.5 },
   transition: {
-    duration: 0.15,
+    type: 'spring',
+    duration: 0.25,
+    bounce: 0.5,
+    // visualDuration: 0.15,
   },
 };
 

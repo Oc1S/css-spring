@@ -1,4 +1,4 @@
-export const lastOfArray = (arr: any[]) => {
+export const lastOfArray = <T>(arr: T[]) => {
   return arr[arr.length - 1];
 };
 

@@ -26,12 +26,14 @@ export const generate = <T extends number>(
   generator: KeyframeGenerator<T>,
   { step = 10, onUpdate }: GenerateConfig<T>
 ) => {
+  const list: number[] = [];
   let duration = 0;
   let state = generator.next(duration);
   while (!state.done && duration < maxGeneratorDuration) {
     state = generator.next(duration);
+    list.push(state.value);
     onUpdate?.(state, duration);
     duration += step;
   }
-  return duration;
+  return { duration, list };
 };
