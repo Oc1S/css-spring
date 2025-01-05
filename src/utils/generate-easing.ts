@@ -1,3 +1,7 @@
+import { numPattern, Property } from '@/constants';
+
+import { formatNumber, toPercent } from './format';
+
 /**
   Progress within given range
 
@@ -36,4 +40,45 @@ export const generate = <T extends number>(
     duration += step;
   }
   return { duration, list };
+};
+
+const formatOpacity = (value: number) => {
+  return `opacity: ${value}`;
+};
+
+export const generateKeyFrameString = (
+  arr: Record<'percent' | 'value', number>[],
+  config: {
+    property: Property;
+    name?: string;
+  } = { property: 'opacity' }
+) => {
+  const { property, name = 'spring-animation' } = config;
+  switch (property) {
+    case 'opacity': {
+    }
+  }
+  return `@keyframes ${name} {
+  ${arr.map(
+    ({ percent, value }) => `${toPercent(percent)} {
+    ${formatOpacity(formatNumber(value))}
+  }`
+  ).join(`
+  `)}
+}`;
+};
+
+/** @deprecated get points from KeyframeGenerator */
+export const _getKeyPoints = (gen: KeyframeGenerator<number>) => {
+  const stringArr = gen
+    .toString()
+    .split(' ')
+    .slice(1)
+    .join('')
+    .match(numPattern);
+  if (!stringArr) return [];
+  const numbers = stringArr.map((numString) => {
+    return formatNumber(+numString);
+  });
+  return numbers;
 };

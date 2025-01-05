@@ -4,34 +4,17 @@ import React, { useEffect, useState } from 'react';
 import { NextUIProvider } from '@nextui-org/react';
 import { spring } from 'motion';
 
-import { numPattern } from '@/constants';
+import { Config } from '@/components/config';
 import { lastOfArray } from '@/utils';
 
 import { ClientOnly } from '../components/client-only';
 import { CodeBlock } from '../components/code-block';
 import { Chart } from '../components/line-chart';
-import { generate } from '../utils/generate-easing';
+import { generate, generateKeyFrameString } from '../utils/generate-easing';
 
 type Data = {
   time: number;
   value: number;
-};
-
-const toPercent = (num: number) => `${(num * 100).toFixed(0)}%`;
-
-const formatNumber = (num: number) => {
-  return +num.toFixed(2);
-};
-
-const generateKeyFrameString = (arr: Record<'percent' | 'value', number>[]) => {
-  return `@keyframes spring-animation {
-  ${arr.map(
-    ({ percent, value }) => `${toPercent(percent)} {
-    ${value}
-  }`
-  ).join(`
-  `)}
-}`;
 };
 
 const numbersToKeyFrameString = (numbers: number[]) => {
@@ -45,7 +28,9 @@ const numbersToKeyFrameString = (numbers: number[]) => {
 };
 
 const indexedValueArrToKeyFrameString = (indexedValues: IndexedValue[]) => {
-  const percent = 1 / (lastOfArray(indexedValues).index - 1);
+  /** 1 / gutter */
+  const percent = 1 / lastOfArray(indexedValues).index;
+
   return generateKeyFrameString(
     indexedValues.map(({ value, index }) => ({
       percent: percent * index,
@@ -84,27 +69,7 @@ const getUpAndDowns = (numbers: number[]): IndexedValue[] => {
   ];
 };
 
-const getKeyPoints = (gen: KeyframeGenerator<number>) => {
-  const stringArr = gen
-    .toString()
-    .split(' ')
-    .slice(1)
-    .join('')
-    .match(numPattern);
-  if (!stringArr) return [];
-  const numbers = stringArr.map((numString) => {
-    return formatNumber(+numString);
-  });
-  return numbers;
-};
-
-const defaultConfig: Omit<Parameters<typeof spring>[0], 'keyframes'> = {
-  duration: 800,
-};
-
 function Home() {
-  const [config, setConfig] = useState(defaultConfig);
-
   const [info, setInfo] = useState({
     initial: true,
     min: 0,
@@ -139,24 +104,32 @@ function Home() {
       list.push({ time: dur, value });
     };
 
-    const { list: gList } = generate(generator, { onUpdate, step: 30 });
+    const { list: fullList } = generate(generator, { onUpdate, step: 30 });
 
-    const numbers = getKeyPoints(generator);
-    const upAndDowns = getUpAndDowns(gList);
+    // const numbers = _getKeyPoints(generator);
+    const upAndDowns = getUpAndDowns(fullList);
 
-    const result = numbersToKeyFrameString(numbers);
+    const fullString = numbersToKeyFrameString(fullList);
     const keyPointString = indexedValueArrToKeyFrameString(upAndDowns);
 
-    setKeyPoints(list);
+    setKeyPoints(
+      upAndDowns.map(({ value, index }) => {
+        return {
+          time: (duration * index) / (list.length - 1),
+          value,
+        };
+      })
+    );
     setInfo({
       initial: false,
       min,
       max,
       duration,
-      result: result + keyPointString,
+      result: keyPointString,
     });
 
-    console.log(numbers, gList, upAndDowns, keyPointString);
+    console.log('full:', fullList, fullString, upAndDowns, keyPointString);
+    console.log('KeyPoints@:', upAndDowns, keyPointString);
   }, []);
 
   return (
@@ -171,11 +144,20 @@ function Home() {
             ))}
           </>
         )}
+        <Config />
       </div>
       <div className="flex justify-center gap-8">
         <ClientOnly>
           {() => <Chart data={keyPoints} keys="value"></Chart>}
         </ClientOnly>
+
+        <style>
+          {`
+          @keyframes spring-animation {
+            ${result}
+          }
+        `}
+        </style>
         <CodeBlock className="max-h-[400px] overflow-x-hidden overflow-y-scroll">
           {result}
         </CodeBlock>
