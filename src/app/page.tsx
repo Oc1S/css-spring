@@ -1,10 +1,11 @@
 'use client';
 
-import React, { useEffect, useState } from 'react';
+import React, { useEffect } from 'react';
 import { NextUIProvider } from '@nextui-org/react';
+import { atom, useAtom } from 'jotai';
 import { spring } from 'motion';
 
-import { Config } from '@/components/config';
+import { Config, configAtom } from '@/components/config';
 import { lastOfArray } from '@/utils';
 
 import { ClientOnly } from '../components/client-only';
@@ -17,17 +18,24 @@ type Data = {
   value: number;
 };
 
-const numbersToKeyFrameString = (numbers: number[]) => {
+const numbersToKeyFrameString = (
+  numbers: number[],
+  config: Parameters<typeof generateKeyFrameString>[1]
+) => {
   const percent = 1 / (numbers.length - 1);
   return generateKeyFrameString(
     numbers.map((_, i) => ({
       percent: percent * i,
       value: numbers[i],
-    }))
+    })),
+    config
   );
 };
 
-const indexedValueArrToKeyFrameString = (indexedValues: IndexedValue[]) => {
+const indexedValueArrToKeyFrameString = (
+  indexedValues: IndexedValue[],
+  config: Parameters<typeof generateKeyFrameString>[1]
+) => {
   /** 1 / gutter */
   const percent = 1 / lastOfArray(indexedValues).index;
 
@@ -35,7 +43,8 @@ const indexedValueArrToKeyFrameString = (indexedValues: IndexedValue[]) => {
     indexedValues.map(({ value, index }) => ({
       percent: percent * index,
       value,
-    }))
+    })),
+    config
   );
 };
 
@@ -69,17 +78,24 @@ const getUpAndDowns = (numbers: number[]): IndexedValue[] => {
   ];
 };
 
-function Home() {
-  const [info, setInfo] = useState({
-    initial: true,
-    min: 0,
-    max: 0,
-    duration: 0,
-    result: '',
-  });
+const resultAtom = atom({
+  initial: true,
+  min: 0,
+  max: 0,
+  duration: 0,
+  fullString: '',
+  keyPointString: '',
+  fullList: [] as number[],
+  samples: [] as IndexedValue[],
+  keyPoints: [] as Data[],
+});
 
-  const { initial, result, ...restInfo } = info;
-  const [keyPoints, setKeyPoints] = useState<Data[]>([]);
+function Home() {
+  const [config] = useAtom(configAtom);
+  const { property } = config;
+
+  const [info, setInfo] = useAtom(resultAtom);
+  const { initial, keyPointString: keyFrameString, min, max, duration } = info;
 
   useEffect(() => {
     const list: Data[] = [];
@@ -105,62 +121,63 @@ function Home() {
     };
 
     const { list: fullList } = generate(generator, { onUpdate, step: 30 });
+    const samples = getUpAndDowns(fullList);
 
-    // const numbers = _getKeyPoints(generator);
-    const upAndDowns = getUpAndDowns(fullList);
+    const fullString = numbersToKeyFrameString(fullList, { property });
+    const keyPointString = indexedValueArrToKeyFrameString(samples, {
+      property,
+    });
 
-    const fullString = numbersToKeyFrameString(fullList);
-    const keyPointString = indexedValueArrToKeyFrameString(upAndDowns);
-
-    setKeyPoints(
-      upAndDowns.map(({ value, index }) => {
-        return {
-          time: (duration * index) / (list.length - 1),
-          value,
-        };
-      })
-    );
     setInfo({
       initial: false,
       min,
       max,
       duration,
-      result: keyPointString,
+      fullString,
+      keyPointString,
+      fullList,
+      samples,
+      keyPoints: samples.map(({ value, index }) => {
+        return {
+          time: (duration * index) / (list.length - 1),
+          value,
+        };
+      }),
     });
 
-    console.log('full:', fullList, fullString, upAndDowns, keyPointString);
-    console.log('KeyPoints@:', upAndDowns, keyPointString);
-  }, []);
+    // console.log('full:', fullList, fullString, samples, keyPointString);
+    // console.log('KeyPoints@:', samples, keyPointString);
+  }, [config.property, config.keyFrames.toString()]);
 
   return (
     <div className="flex min-h-screen flex-col items-center justify-items-center gap-20 p-8 pt-32">
-      <div className="flex flex-col gap-2 py-4">
+      <div className="flex gap-4 py-4">
         {initial || (
-          <>
-            {Object.entries(restInfo).map(([key, value]) => (
+          <div className="flex flex-col gap-2 py-4">
+            {Object.entries({ min, max, duration }).map(([key, value]) => (
               <div key={key}>
                 {key}:{value}
               </div>
             ))}
-          </>
+          </div>
         )}
         <Config />
       </div>
-      <div className="flex justify-center gap-8">
+      <div className="flex items-center justify-center gap-8">
         <ClientOnly>
-          {() => <Chart data={keyPoints} keys="value"></Chart>}
+          {() => (
+            <>
+              <Chart data={info.keyPoints} keys="value"></Chart>
+            </>
+          )}
         </ClientOnly>
 
-        <style>
-          {`
-          @keyframes spring-animation {
-            ${result}
-          }
-        `}
-        </style>
-        <CodeBlock className="max-h-[400px] overflow-x-hidden overflow-y-scroll">
-          {result}
-        </CodeBlock>
+        <style>{keyFrameString}</style>
+        {keyFrameString && (
+          <CodeBlock className="max-h-[400px] overflow-x-hidden overflow-y-scroll">
+            {keyFrameString}
+          </CodeBlock>
+        )}
       </div>
     </div>
   );

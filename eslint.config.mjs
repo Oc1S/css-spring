@@ -14,6 +14,7 @@ const eslintConfig = [
     extends: ['next/core-web-vitals', 'next/typescript'],
     plugins: ['simple-import-sort'],
     rules: {
+      'react-hooks/exhaustive-deps': 'off',
       'simple-import-sort/imports': [
         'warn',
         {

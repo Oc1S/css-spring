@@ -46,6 +46,18 @@ const formatOpacity = (value: number) => {
   return `opacity: ${value}`;
 };
 
+const formatScale = (value: number) => {
+  return `transform: scale(${value})`;
+};
+
+const formatTranslateX = (value: number) => {
+  return `transform: translateX(${value}px)`;
+};
+
+const formatTranslateY = (value: number) => {
+  return `transform: translateY(${value}px)`;
+};
+
 export const generateKeyFrameString = (
   arr: Record<'percent' | 'value', number>[],
   config: {
@@ -54,14 +66,20 @@ export const generateKeyFrameString = (
   } = { property: 'opacity' }
 ) => {
   const { property, name = 'spring-animation' } = config;
-  switch (property) {
-    case 'opacity': {
-    }
-  }
+
+  const format =
+    property === 'opacity'
+      ? formatOpacity
+      : property === 'scale'
+        ? formatScale
+        : property === 'translateX'
+          ? formatTranslateX
+          : formatTranslateY;
+
   return `@keyframes ${name} {
   ${arr.map(
     ({ percent, value }) => `${toPercent(percent)} {
-    ${formatOpacity(formatNumber(value))}
+    ${format(formatNumber(value))};
   }`
   ).join(`
   `)}

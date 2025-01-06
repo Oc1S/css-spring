@@ -8,3 +8,5 @@ interface KeyframeGenerator<V = number> {
   next: (t: number) => AnimationState<V>;
   toString: () => string;
 }
+
+type AnimationKeyFrames = number[];
