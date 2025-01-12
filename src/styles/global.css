@@ -12,3 +12,7 @@ body {
   background: var(--background);
   font-family: Outfit, Arial, Helvetica, sans-serif;
 }
+
+::-webkit-scrollbar {
+  display: none;
+}

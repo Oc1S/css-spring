@@ -92,7 +92,7 @@ const resultAtom = atom({
 
 function Home() {
   const [config] = useAtom(configAtom);
-  const { property } = config;
+  const { property, keyFrames } = config;
 
   const [info, setInfo] = useAtom(resultAtom);
   const { initial, keyPointString: keyFrameString, min, max, duration } = info;
@@ -104,7 +104,7 @@ function Home() {
     const duration = 500;
 
     const generator = spring({
-      keyframes: [0, 200],
+      keyframes: keyFrames,
       bounce: 0.5,
       duration,
       // visualDuration: duration / 1_000,
@@ -148,6 +148,8 @@ function Home() {
     // console.log('full:', fullList, fullString, samples, keyPointString);
     // console.log('KeyPoints@:', samples, keyPointString);
   }, [config.property, config.keyFrames.toString()]);
+
+  console.log(config.keyFrames.toString());
 
   return (
     <div className="flex min-h-screen flex-col items-center justify-items-center gap-20 p-8 pt-32">

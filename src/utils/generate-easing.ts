@@ -78,9 +78,8 @@ export const generateKeyFrameString = (
 
   return `@keyframes ${name} {
   ${arr.map(
-    ({ percent, value }) => `${toPercent(percent)} {
-    ${format(formatNumber(value))};
-  }`
+    ({ percent, value }) =>
+      `${toPercent(percent)} {${format(formatNumber(value))};}`
   ).join(`
   `)}
 }`;

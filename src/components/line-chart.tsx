@@ -1,4 +1,4 @@
-import { Legend, Line, LineChart, Tooltip, XAxis, YAxis } from 'recharts';
+import { Line, LineChart, XAxis, YAxis } from 'recharts';
 
 export const Chart: React.FC<{
   data: any[];
@@ -16,12 +16,12 @@ export const Chart: React.FC<{
         type="number"
       />
       <YAxis />
-      <Tooltip
+      {/* <Tooltip
         labelStyle={{
           color: '#eee',
         }}
-      />
-      <Legend />
+      /> */}
+      {/* <Legend /> */}
       {dataKeys.map((key) => {
         return (
           <Line

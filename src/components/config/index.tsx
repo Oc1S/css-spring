@@ -1,7 +1,9 @@
 import { Input, Select, SelectItem } from '@nextui-org/react';
 import { atom, useAtom } from 'jotai';
+import { useDebounceCallback } from 'usehooks-ts';
 
 import { properties, Property, propertyMap } from '@/constants';
+import { lastOfArray } from '@/utils';
 
 export type IConfig = {
   duration?: number;
@@ -28,25 +30,31 @@ export default function KeyFrames() {
   const configDesc = propertyMap[property];
   const frames = keyFrames || configDesc.default;
 
+  const maxFrame = lastOfArray(frames);
+  const step = maxFrame > 10 ? 1 : 0.1;
+
+  const onValueChange = useDebounceCallback((value: string, index: number) => {
+    const newKeyFrames: AnimationKeyFrames = [...keyFrames];
+    newKeyFrames[index] = parseFloat(value);
+    setConfig((c) => ({ ...c, keyFrames: newKeyFrames }));
+  }, 500);
+
   return (
     <div className="flex gap-4">
       {frames.map((frame, index) => {
         return (
           <Input
             key={index}
+            className="w-40"
             label={index === 0 ? 'From' : 'To'}
             placeholder="0"
             type="number"
-            className="w-40"
+            step={step}
             labelPlacement="outside"
             min={configDesc.min}
             max={configDesc.max}
-            value={frame.toString()}
-            onValueChange={(value) => {
-              const newKeyFrames: AnimationKeyFrames = [...keyFrames];
-              newKeyFrames[index] = parseFloat(value);
-              setConfig((c) => ({ ...c, keyFrames: newKeyFrames }));
-            }}
+            defaultValue={frame.toString()}
+            onValueChange={(val) => onValueChange(val, index)}
           />
         );
       })}
