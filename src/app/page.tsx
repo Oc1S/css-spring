@@ -2,21 +2,17 @@
 
 import React, { useEffect } from 'react';
 import { NextUIProvider } from '@nextui-org/react';
-import { atom, useAtom } from 'jotai';
+import { useAtom } from 'jotai';
 import { spring } from 'motion';
 
 import { Config, configAtom } from '@/components/config';
+import { resultAtom } from '@/components/display';
 import { lastOfArray } from '@/utils';
 
 import { ClientOnly } from '../components/client-only';
 import { CodeBlock } from '../components/code-block';
 import { Chart } from '../components/line-chart';
 import { generate, generateKeyFrameString } from '../utils/generate-easing';
-
-type Data = {
-  time: number;
-  value: number;
-};
 
 const numbersToKeyFrameString = (
   numbers: number[],
@@ -48,11 +44,6 @@ const indexedValueArrToKeyFrameString = (
   );
 };
 
-type IndexedValue = {
-  value: number;
-  index: number;
-};
-
 const getUpAndDowns = (numbers: number[]): IndexedValue[] => {
   if (numbers.length <= 1)
     return numbers.map((value, index) => ({
@@ -78,36 +69,29 @@ const getUpAndDowns = (numbers: number[]): IndexedValue[] => {
   ];
 };
 
-const resultAtom = atom({
-  initial: true,
-  min: 0,
-  max: 0,
-  duration: 0,
-  fullString: '',
-  keyPointString: '',
-  fullList: [] as number[],
-  samples: [] as IndexedValue[],
-  keyPoints: [] as Data[],
-});
-
 function Home() {
   const [config] = useAtom(configAtom);
   const { property, keyFrames } = config;
 
   const [info, setInfo] = useAtom(resultAtom);
-  const { initial, keyPointString: keyFrameString, min, max, duration } = info;
+  const { keyPointString: keyFrameString } = info;
 
   useEffect(() => {
-    const list: Data[] = [];
+    const list: timedValue[] = [];
     let min = Number.MAX_VALUE;
     let max = Number.MIN_VALUE;
-    const duration = 500;
+    const duration = config.duration || 500;
 
     const generator = spring({
       keyframes: keyFrames,
       bounce: 0.5,
-      duration,
-      // visualDuration: duration / 1_000,
+      ...(config.useVisualDuration
+        ? {
+            visualDuration: duration / 1_000,
+          }
+        : {
+            duration,
+          }),
     });
 
     const onUpdate: Parameters<typeof generate>[1]['onUpdate'] = (
@@ -129,14 +113,15 @@ function Home() {
     });
 
     setInfo({
+      generator,
       initial: false,
       min,
       max,
       duration,
-      fullString,
-      keyPointString,
       fullList,
+      fullString,
       samples,
+      keyPointString,
       keyPoints: samples.map(({ value, index }) => {
         return {
           time: (duration * index) / (list.length - 1),
@@ -144,42 +129,46 @@ function Home() {
         };
       }),
     });
-
-    // console.log('full:', fullList, fullString, samples, keyPointString);
-    // console.log('KeyPoints@:', samples, keyPointString);
-  }, [config.property, config.keyFrames.toString()]);
-
-  console.log(config.keyFrames.toString());
+  }, [
+    config.property,
+    config.keyFrames.toString(),
+    config.duration,
+    config.useVisualDuration,
+  ]);
 
   return (
     <div className="flex min-h-screen flex-col items-center justify-items-center gap-20 p-8 pt-32">
       <div className="flex gap-4 py-4">
-        {initial || (
-          <div className="flex flex-col gap-2 py-4">
-            {Object.entries({ min, max, duration }).map(([key, value]) => (
-              <div key={key}>
-                {key}:{value}
-              </div>
-            ))}
-          </div>
-        )}
         <Config />
       </div>
       <div className="flex items-center justify-center gap-8">
         <ClientOnly>
           {() => (
             <>
-              <Chart data={info.keyPoints} keys="value"></Chart>
+              <Chart data={info.keyPoints} keys="value" />
             </>
           )}
         </ClientOnly>
 
-        <style>{keyFrameString}</style>
-        {keyFrameString && (
-          <CodeBlock className="max-h-[400px] overflow-x-hidden overflow-y-scroll">
-            {keyFrameString}
-          </CodeBlock>
-        )}
+        {/* <style>{keyFrameString}</style> */}
+        <div className="flex flex-col gap-4">
+          {info.generator && (
+            <>
+              <div>Transition:</div>
+              <CodeBlock>
+                {'transition: all ' + info.generator.toString() || ''}
+              </CodeBlock>
+            </>
+          )}
+          {keyFrameString && (
+            <>
+              <div>Animation:</div>
+              <CodeBlock>{keyFrameString}</CodeBlock>
+            </>
+          )}
+        </div>
+
+        {/* <DisplayInfo /> */}
       </div>
     </div>
   );

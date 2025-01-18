@@ -15,6 +15,7 @@ const eslintConfig = [
     plugins: ['simple-import-sort'],
     rules: {
       'react-hooks/exhaustive-deps': 'off',
+      'react/self-closing-comp': 'warn',
       'simple-import-sort/imports': [
         'warn',
         {

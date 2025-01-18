@@ -10,3 +10,13 @@ interface KeyframeGenerator<V = number> {
 }
 
 type AnimationKeyFrames = number[];
+
+type timedValue = {
+  time: number;
+  value: number;
+};
+
+type IndexedValue = {
+  value: number;
+  index: number;
+};

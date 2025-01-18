@@ -1,4 +1,11 @@
-import { Input, Select, SelectItem } from '@nextui-org/react';
+import {
+  Card,
+  CardBody,
+  Checkbox,
+  Input,
+  Select,
+  SelectItem,
+} from '@nextui-org/react';
 import { atom, useAtom } from 'jotai';
 import { useDebounceCallback } from 'usehooks-ts';
 
@@ -7,6 +14,7 @@ import { lastOfArray } from '@/utils';
 
 export type IConfig = {
   duration?: number;
+  useVisualDuration?: boolean;
   visualDuration?: number;
   keyFrames: AnimationKeyFrames;
   property: Property;
@@ -14,8 +22,9 @@ export type IConfig = {
 
 const defaultConfig: IConfig = {
   keyFrames: [0, 1],
+  useVisualDuration: true,
   property: properties[0],
-  duration: 800,
+  duration: 500,
 };
 export const configAtom = atom(defaultConfig);
 
@@ -24,7 +33,31 @@ type KeyLabel<T> = {
   label: string;
 };
 
-export default function KeyFrames() {
+const PropertyConfig = () => {
+  const [config, setConfig] = useAtom(configAtom);
+  return (
+    <>
+      <Select<KeyLabel<Property>>
+        selectedKeys={[config.property]}
+        className="w-40"
+        label="Target Property"
+        placeholder="Select target property"
+        items={properties.map((p) => ({ key: p, label: p }))}
+        onSelectionChange={(p) => {
+          setConfig((c) => ({
+            ...c,
+            property: p.currentKey as Property,
+            keyFrames: propertyMap[p.currentKey as Property].default,
+          }));
+        }}
+      >
+        {(animal) => <SelectItem>{animal.label}</SelectItem>}
+      </Select>
+    </>
+  );
+};
+
+function KeyFrames() {
   const [config, setConfig] = useAtom(configAtom);
   const { property, keyFrames } = config;
   const configDesc = propertyMap[property];
@@ -62,36 +95,54 @@ export default function KeyFrames() {
   );
 }
 
-export const PropertyConfig = () => {
+const Duration = () => {
   const [config, setConfig] = useAtom(configAtom);
+  const { duration } = config;
+
+  const onValueChange = useDebounceCallback((value: string) => {
+    setConfig((c) => ({ ...c, duration: parseInt(value) }));
+  }, 500);
 
   return (
-    <>
-      <Select<KeyLabel<Property>>
+    <div className="flex gap-4">
+      <Input
         className="w-40"
-        selectedKeys={[config.property]}
-        items={properties.map((p) => ({ key: p, label: p }))}
-        onSelectionChange={(p) => {
-          setConfig((c) => ({
-            ...c,
-            property: p.currentKey as Property,
-            keyFrames: propertyMap[p.currentKey as Property].default,
-          }));
-        }}
-        label="Target Property"
-        placeholder="Select target property"
-      >
-        {(animal) => <SelectItem>{animal.label}</SelectItem>}
-      </Select>
-    </>
+        label="Duration(ms)"
+        placeholder="0"
+        type="number"
+        step={1}
+        labelPlacement="outside"
+        min={0}
+        defaultValue={String(duration || 0)}
+        onValueChange={(val) => onValueChange(val)}
+      />
+    </div>
   );
 };
 
 export const Config = () => {
+  const [config, setConfig] = useAtom(configAtom);
   return (
-    <div className="flex flex-col items-start gap-4">
-      <PropertyConfig></PropertyConfig>
-      <KeyFrames></KeyFrames>
-    </div>
+    <Card>
+      <CardBody>
+        <div className="flex items-center gap-12">
+          <div className="flex flex-col gap-4">
+            <Checkbox
+              checked={config.useVisualDuration}
+              onValueChange={(e) => {
+                setConfig((c) => ({ ...c, useVisualDuration: e }));
+              }}
+            >
+              useVisualDuration
+            </Checkbox>
+            <PropertyConfig />
+          </div>
+          <div className="flex flex-col items-start gap-4">
+            <KeyFrames />
+            <Duration />
+          </div>
+        </div>
+      </CardBody>
+    </Card>
   );
 };
