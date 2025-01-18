@@ -21,11 +21,13 @@ export const progress = (from: number, to: number, value: number) => {
 
 export type EasingFunction = (v: number) => number;
 
-type GenerateConfig<T> = {
+export type GenerateConfig<T> = {
   step?: number;
   onUpdate?: (result: AnimationState<T>, duration: number) => void;
 };
+
 export const maxGeneratorDuration = 20_000;
+
 export const generate = <T extends number>(
   generator: KeyframeGenerator<T>,
   { step = 10, onUpdate }: GenerateConfig<T>
@@ -58,6 +60,10 @@ const formatTranslateY = (value: number) => {
   return `transform: translateY(${value}px)`;
 };
 
+const formatRotate = (value: number) => {
+  return `transform: rotate(${value}deg)`;
+};
+
 export const generateKeyFrameString = (
   arr: Record<'percent' | 'value', number>[],
   config: {
@@ -67,14 +73,14 @@ export const generateKeyFrameString = (
 ) => {
   const { property, name = 'spring-animation' } = config;
 
-  const format =
-    property === 'opacity'
-      ? formatOpacity
-      : property === 'scale'
-        ? formatScale
-        : property === 'translateX'
-          ? formatTranslateX
-          : formatTranslateY;
+  const formatMap = {
+    opacity: formatOpacity,
+    scale: formatScale,
+    translateX: formatTranslateX,
+    translateY: formatTranslateY,
+    rotate: formatRotate,
+  };
+  const format = formatMap[property];
 
   return `@keyframes ${name} {
   ${arr.map(

@@ -7,9 +7,9 @@ export const resultAtom = atom({
   min: 0,
   max: 0,
   duration: 500,
-  fullString: '',
   keyPointString: '',
-  fullList: [] as number[],
-  samples: [] as IndexedValue[],
   keyPoints: [] as timedValue[],
+  // fullString: '',
+  // fullList: [] as number[],
+  // samples: [] as IndexedValue[],
 });

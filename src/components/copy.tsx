@@ -7,12 +7,12 @@ import { Check, Clipboard } from './icons';
 
 const variants = {
   visible: { opacity: 1, scale: 1 },
-  hidden: { opacity: 0, scale: 0.5 },
+  hidden: { opacity: 0, scale: 0 },
   transition: {
     type: 'spring',
-    duration: 0.25,
-    bounce: 0.5,
-    // visualDuration: 0.15,
+    duration: 0.3,
+    bounce: 0.3,
+    visualDuration: 0.1,
   },
 };
 
@@ -34,8 +34,8 @@ export const Copy: React.FC<
   };
 
   const onCopy = () => {
-    copy(content);
     if (copying) return;
+    copy(content);
     setCopying(true);
     crearTimer();
     timerRef.current = setTimeout(() => {

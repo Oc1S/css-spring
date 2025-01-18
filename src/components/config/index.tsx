@@ -1,3 +1,4 @@
+import { useEffect, useState } from 'react';
 import {
   Card,
   CardBody,
@@ -15,9 +16,9 @@ import { lastOfArray } from '@/utils';
 export type IConfig = {
   duration?: number;
   useVisualDuration?: boolean;
-  visualDuration?: number;
   keyFrames: AnimationKeyFrames;
   property: Property;
+  useSample: boolean;
 };
 
 const defaultConfig: IConfig = {
@@ -25,6 +26,7 @@ const defaultConfig: IConfig = {
   useVisualDuration: true,
   property: properties[0],
   duration: 500,
+  useSample: false,
 };
 export const configAtom = atom(defaultConfig);
 
@@ -35,6 +37,8 @@ type KeyLabel<T> = {
 
 const PropertyConfig = () => {
   const [config, setConfig] = useAtom(configAtom);
+  console.log(config.keyFrames);
+
   return (
     <>
       <Select<KeyLabel<Property>>
@@ -61,20 +65,28 @@ function KeyFrames() {
   const [config, setConfig] = useAtom(configAtom);
   const { property, keyFrames } = config;
   const configDesc = propertyMap[property];
-  const frames = keyFrames || configDesc.default;
+  const frames = keyFrames;
 
   const maxFrame = lastOfArray(frames);
   const step = maxFrame > 10 ? 1 : 0.1;
 
-  const onValueChange = useDebounceCallback((value: string, index: number) => {
-    const newKeyFrames: AnimationKeyFrames = [...keyFrames];
-    newKeyFrames[index] = parseFloat(value);
-    setConfig((c) => ({ ...c, keyFrames: newKeyFrames }));
+  const [values, setValues] = useState(frames);
+
+  const updateKeyFrames = useDebounceCallback((vals: AnimationKeyFrames) => {
+    setConfig((c) => ({ ...c, keyFrames: vals }));
   }, 500);
+
+  useEffect(() => {
+    setValues(frames);
+  }, [frames.toString()]);
+
+  useEffect(() => {
+    updateKeyFrames(values);
+  }, [values.toString()]);
 
   return (
     <div className="flex gap-4">
-      {frames.map((frame, index) => {
+      {values.map((frame, index) => {
         return (
           <Input
             key={index}
@@ -86,8 +98,14 @@ function KeyFrames() {
             labelPlacement="outside"
             min={configDesc.min}
             max={configDesc.max}
-            defaultValue={frame.toString()}
-            onValueChange={(val) => onValueChange(val, index)}
+            value={frame.toString()}
+            onValueChange={(val) => {
+              setValues((v) => {
+                const newValues = [...v];
+                newValues[index] = parseFloat(val);
+                return newValues;
+              });
+            }}
           />
         );
       })}
@@ -135,9 +153,18 @@ export const Config = () => {
             >
               useVisualDuration
             </Checkbox>
-            <PropertyConfig />
+
+            <Checkbox
+              checked={config.useSample}
+              onValueChange={(e) => {
+                setConfig((c) => ({ ...c, useVisualDuration: e }));
+              }}
+            >
+              useSample
+            </Checkbox>
           </div>
           <div className="flex flex-col items-start gap-4">
+            <PropertyConfig />
             <KeyFrames />
             <Duration />
           </div>

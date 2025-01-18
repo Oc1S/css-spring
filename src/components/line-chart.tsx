@@ -7,7 +7,7 @@ export const Chart: React.FC<{
   const dataKeys = Array.isArray(keys) ? keys : [keys];
 
   return (
-    <LineChart width={400} height={400} data={data}>
+    <LineChart width={400} height={300} data={data}>
       {/* <CartesianGrid strokeDasharray="3 3" /> */}
       <XAxis
         dataKey="time"

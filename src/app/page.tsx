@@ -5,14 +5,14 @@ import { NextUIProvider } from '@nextui-org/react';
 import { useAtom } from 'jotai';
 import { spring } from 'motion';
 
+import { BlurFade } from '@/components/blue-fade';
+import { ClientOnly } from '@/components/client-only';
+import { CodeBlock } from '@/components/code-block';
 import { Config, configAtom } from '@/components/config';
 import { resultAtom } from '@/components/display';
+import { Chart } from '@/components/line-chart';
 import { lastOfArray } from '@/utils';
-
-import { ClientOnly } from '../components/client-only';
-import { CodeBlock } from '../components/code-block';
-import { Chart } from '../components/line-chart';
-import { generate, generateKeyFrameString } from '../utils/generate-easing';
+import { generate, generateKeyFrameString } from '@/utils/generate-easing';
 
 const numbersToKeyFrameString = (
   numbers: number[],
@@ -76,7 +76,7 @@ function Home() {
   const [info, setInfo] = useAtom(resultAtom);
   const { keyPointString: keyFrameString } = info;
 
-  useEffect(() => {
+  const getResult = (useSample: boolean) => {
     const list: timedValue[] = [];
     let min = Number.MAX_VALUE;
     let max = Number.MIN_VALUE;
@@ -105,35 +105,54 @@ function Home() {
     };
 
     const { list: fullList } = generate(generator, { onUpdate, step: 30 });
-    const samples = getUpAndDowns(fullList);
+
+    if (useSample) {
+      const samples = getUpAndDowns(fullList);
+      const keyPointString = indexedValueArrToKeyFrameString(samples, {
+        property,
+      });
+      return {
+        generator,
+        initial: false,
+        min,
+        max,
+        duration,
+        keyPointString,
+        keyPoints: samples.map(({ value, index }) => {
+          return {
+            time: (duration * index) / (list.length - 1),
+            value,
+          };
+        }),
+      };
+    }
 
     const fullString = numbersToKeyFrameString(fullList, { property });
-    const keyPointString = indexedValueArrToKeyFrameString(samples, {
-      property,
-    });
 
-    setInfo({
+    return {
       generator,
       initial: false,
       min,
       max,
       duration,
-      fullList,
-      fullString,
-      samples,
-      keyPointString,
-      keyPoints: samples.map(({ value, index }) => {
+      keyPointString: fullString,
+      keyPoints: fullList.map((value, index) => {
         return {
           time: (duration * index) / (list.length - 1),
           value,
         };
       }),
-    });
+    };
+  };
+
+  useEffect(() => {
+    setInfo(getResult(config.useSample));
   }, [
     config.property,
     config.keyFrames.toString(),
     config.duration,
     config.useVisualDuration,
+    config.useSample,
   ]);
 
   return (
@@ -155,15 +174,28 @@ function Home() {
           {info.generator && (
             <>
               <div>Transition:</div>
-              <CodeBlock>
-                {'transition: all ' + info.generator.toString() || ''}
-              </CodeBlock>
+              <BlurFade key={info.generator.toString()} inView>
+                <CodeBlock>
+                  {'transition: all ' + info.generator.toString() || ''}
+                </CodeBlock>
+              </BlurFade>
             </>
           )}
           {keyFrameString && (
             <>
               <div>Animation:</div>
-              <CodeBlock>{keyFrameString}</CodeBlock>
+              <BlurFade
+                key={keyFrameString}
+                inView
+                className="flex flex-col gap-4"
+              >
+                <CodeBlock>
+                  {`.anim { 
+  animation: ${'0.5s'} ${'spring-animation'} linear 
+}`}
+                </CodeBlock>
+                <CodeBlock>{keyFrameString}</CodeBlock>
+              </BlurFade>
             </>
           )}
         </div>

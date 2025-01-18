@@ -16,3 +16,7 @@ body {
 ::-webkit-scrollbar {
   display: none;
 }
+
+pre {
+  font-family: mona, 'Courier New', Courier, monospace;
+}
