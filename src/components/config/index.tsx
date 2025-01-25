@@ -6,6 +6,7 @@ import {
   Input,
   Select,
   SelectItem,
+  Tooltip,
 } from '@nextui-org/react';
 import { atom, useAtom } from 'jotai';
 import { useDebounceCallback } from 'usehooks-ts';
@@ -14,7 +15,7 @@ import { properties, Property, propertyMap } from '@/constants';
 import { lastOfArray } from '@/utils';
 
 export type IConfig = {
-  duration?: number;
+  duration: number;
   useVisualDuration?: boolean;
   keyFrames: AnimationKeyFrames;
   property: Property;
@@ -37,7 +38,6 @@ type KeyLabel<T> = {
 
 const PropertyConfig = () => {
   const [config, setConfig] = useAtom(configAtom);
-  console.log(config.keyFrames);
 
   return (
     <>
@@ -140,28 +140,36 @@ const Duration = () => {
 
 export const Config = () => {
   const [config, setConfig] = useAtom(configAtom);
+
   return (
     <Card>
       <CardBody>
         <div className="flex items-center gap-12">
           <div className="flex flex-col gap-4">
             <Checkbox
-              checked={config.useVisualDuration}
-              onValueChange={(e) => {
-                setConfig((c) => ({ ...c, useVisualDuration: e }));
+              isSelected={config.useVisualDuration}
+              onValueChange={(s) => {
+                setConfig((c) => ({ ...c, useVisualDuration: s }));
               }}
             >
               useVisualDuration
             </Checkbox>
 
-            <Checkbox
-              checked={config.useSample}
-              onValueChange={(e) => {
-                setConfig((c) => ({ ...c, useVisualDuration: e }));
-              }}
+            <Tooltip
+              content="Sample: Pick only key points, for those who need the generated css string to be short"
+              placement="right"
+              delay={500}
+              closeDelay={0}
             >
-              useSample
-            </Checkbox>
+              <Checkbox
+                isSelected={config.useSample}
+                onValueChange={(s) => {
+                  setConfig((c) => ({ ...c, useSample: s }));
+                }}
+              >
+                useSample
+              </Checkbox>
+            </Tooltip>
           </div>
           <div className="flex flex-col items-start gap-4">
             <PropertyConfig />

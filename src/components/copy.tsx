@@ -6,13 +6,21 @@ import { cx } from '../utils';
 import { Check, Clipboard } from './icons';
 
 const variants = {
-  visible: { opacity: 1, scale: 1 },
-  hidden: { opacity: 0, scale: 0 },
-  transition: {
-    type: 'spring',
-    duration: 0.3,
-    bounce: 0.3,
-    visualDuration: 0.1,
+  visible: {
+    opacity: 1,
+    scale: 1,
+    transition: {
+      type: 'spring',
+      duration: 0.15,
+      bounce: 0.35,
+    },
+  },
+  hidden: {
+    opacity: 0,
+    scale: 0,
+    transition: {
+      duration: 0.15,
+    },
   },
 };
 
@@ -69,7 +77,6 @@ export const Copy: React.FC<
             initial={variants.hidden}
             animate={variants.visible}
             exit={variants.hidden}
-            transition={variants.transition}
             className="flex"
           >
             <Check />
@@ -80,7 +87,6 @@ export const Copy: React.FC<
             initial={variants.hidden}
             animate={variants.visible}
             exit={variants.hidden}
-            transition={variants.transition}
             className="flex"
           >
             <Clipboard />

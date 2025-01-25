@@ -1,3 +1,5 @@
+import { AnimationGeneratorType } from 'framer-motion';
+
 import { numPattern, Property } from '@/constants';
 
 import { formatNumber, toPercent } from './format';
@@ -26,21 +28,37 @@ export type GenerateConfig<T> = {
   onUpdate?: (result: AnimationState<T>, duration: number) => void;
 };
 
+export const generateLinearFuncString = (
+  generator: KeyframeGenerator,
+  duration: number, // as milliseconds
+  resolution: number = 10 // as milliseconds
+): string => {
+  let points = '';
+  const numPoints = Math.max(Math.round(duration / resolution), 2);
+  for (let i = 0; i < numPoints; i++) {
+    points +=
+      generator.next(duration * progress(0, numPoints - 1, i)).value + ', ';
+  }
+
+  return `linear(${points.substring(0, points.length - 2)})`;
+};
+
 export const maxGeneratorDuration = 20_000;
 
-export const generate = <T extends number>(
+export const generateAnimation = <T extends number>(
   generator: KeyframeGenerator<T>,
   { step = 10, onUpdate }: GenerateConfig<T>
-) => {
+): { duration: number; list: number[] } => {
   const list: number[] = [];
   let duration = 0;
   let state = generator.next(duration);
   while (!state.done && duration < maxGeneratorDuration) {
-    state = generator.next(duration);
     list.push(state.value);
     onUpdate?.(state, duration);
     duration += step;
+    state = generator.next(duration);
   }
+
   return { duration, list };
 };
 

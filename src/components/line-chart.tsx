@@ -21,7 +21,6 @@ export const Chart: React.FC<{
           color: '#eee',
         }}
       />
-      {/* <Legend /> */}
       {dataKeys.map((key) => {
         return (
           <Line

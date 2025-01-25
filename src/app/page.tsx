@@ -1,18 +1,21 @@
 'use client';
 
 import React, { useEffect } from 'react';
-import { NextUIProvider } from '@nextui-org/react';
+import { Button, Card, CardBody, NextUIProvider } from '@nextui-org/react';
 import { useAtom } from 'jotai';
 import { spring } from 'motion';
 
-import { BlurFade } from '@/components/blue-fade';
 import { ClientOnly } from '@/components/client-only';
 import { CodeBlock } from '@/components/code-block';
 import { Config, configAtom } from '@/components/config';
-import { resultAtom } from '@/components/display';
+import { InfoType, resultAtom } from '@/components/display';
 import { Chart } from '@/components/line-chart';
 import { lastOfArray } from '@/utils';
-import { generate, generateKeyFrameString } from '@/utils/generate-easing';
+import {
+  generateAnimation,
+  generateKeyFrameString,
+  generateLinearFuncString,
+} from '@/utils/generate-easing';
 
 const numbersToKeyFrameString = (
   numbers: number[],
@@ -70,31 +73,32 @@ const getUpAndDowns = (numbers: number[]): IndexedValue[] => {
 };
 
 function Home() {
-  const [config] = useAtom(configAtom);
+  const [config, setConfig] = useAtom(configAtom);
   const { property, keyFrames } = config;
 
   const [info, setInfo] = useAtom(resultAtom);
-  const { keyPointString: keyFrameString } = info;
+  const { keyFrameString: keyFrameString } = info;
 
-  const getResult = (useSample: boolean) => {
+  const getResult = (useSample: boolean): InfoType => {
     const list: timedValue[] = [];
     let min = Number.MAX_VALUE;
     let max = Number.MIN_VALUE;
-    const duration = config.duration || 500;
+
+    const configDuration = config.duration;
 
     const generator = spring({
       keyframes: keyFrames,
       bounce: 0.5,
       ...(config.useVisualDuration
         ? {
-            visualDuration: duration / 1_000,
+            visualDuration: configDuration / 1_000,
           }
         : {
-            duration,
+            duration: configDuration,
           }),
     });
 
-    const onUpdate: Parameters<typeof generate>[1]['onUpdate'] = (
+    const onUpdate: Parameters<typeof generateAnimation>[1]['onUpdate'] = (
       result,
       dur
     ) => {
@@ -104,7 +108,13 @@ function Home() {
       list.push({ time: dur, value });
     };
 
-    const { list: fullList } = generate(generator, { onUpdate, step: 30 });
+    const { list: fullList, duration: finalDuration } = generateAnimation(
+      generator,
+      {
+        onUpdate,
+        step: 30,
+      }
+    );
 
     if (useSample) {
       const samples = getUpAndDowns(fullList);
@@ -116,11 +126,11 @@ function Home() {
         initial: false,
         min,
         max,
-        duration,
-        keyPointString,
+        duration: finalDuration,
+        keyFrameString: keyPointString,
         keyPoints: samples.map(({ value, index }) => {
           return {
-            time: (duration * index) / (list.length - 1),
+            time: (finalDuration * index) / (list.length - 1),
             value,
           };
         }),
@@ -128,17 +138,19 @@ function Home() {
     }
 
     const fullString = numbersToKeyFrameString(fullList, { property });
+    const linearString = generateLinearFuncString(generator, finalDuration, 30);
+    console.log(linearString, '@@');
 
     return {
       generator,
       initial: false,
       min,
       max,
-      duration,
-      keyPointString: fullString,
+      duration: finalDuration,
+      keyFrameString: fullString,
       keyPoints: fullList.map((value, index) => {
         return {
-          time: (duration * index) / (list.length - 1),
+          time: (finalDuration * index) / (list.length - 1),
           value,
         };
       }),
@@ -156,48 +168,76 @@ function Home() {
   ]);
 
   return (
-    <div className="flex min-h-screen flex-col items-center justify-items-center gap-20 p-8 pt-32">
-      <div className="flex gap-4 py-4">
+    <div className="flex min-h-screen flex-col items-center justify-items-center gap-12 p-8 pt-20">
+      <div className="flex gap-4">
         <Config />
-      </div>
-      <div className="flex items-center justify-center gap-8">
-        <ClientOnly>
-          {() => (
-            <>
-              <Chart data={info.keyPoints} keys="value" />
-            </>
-          )}
-        </ClientOnly>
 
+        {info.keyPoints.length > 0 && (
+          <Card>
+            <CardBody>
+              <ClientOnly>
+                {() => (
+                  <>
+                    <Chart data={info.keyPoints} keys="value" />
+                  </>
+                )}
+              </ClientOnly>
+            </CardBody>
+          </Card>
+        )}
+      </div>
+
+      <div className="flex items-center justify-center gap-6">
         {/* <style>{keyFrameString}</style> */}
-        <div className="flex flex-col gap-4">
+        <div className="flex gap-4">
           {info.generator && (
-            <>
-              <div>Transition:</div>
-              <BlurFade key={info.generator.toString()} inView>
-                <CodeBlock>
-                  {'transition: all ' + info.generator.toString() || ''}
-                </CodeBlock>
-              </BlurFade>
-            </>
+            <Card>
+              <CardBody>
+                {
+                  <div className="flex flex-col gap-2">
+                    <div className="text-lg">Transition:</div>
+                    {config.useSample ? (
+                      <div className="flex flex-col gap-4 p-4">
+                        linear() func is not compatible with sample mode
+                        <Button
+                          variant="flat"
+                          color="secondary"
+                          onPress={() => {
+                            setConfig((prev) => ({
+                              ...prev,
+                              useSample: false,
+                            }));
+                          }}
+                        >
+                          Disable sample mode
+                        </Button>
+                      </div>
+                    ) : (
+                      <CodeBlock>
+                        {'transition: all ' + info.generator.toString() || ''}
+                      </CodeBlock>
+                    )}
+                  </div>
+                }
+              </CardBody>
+            </Card>
           )}
-          {keyFrameString && (
-            <>
-              <div>Animation:</div>
-              <BlurFade
-                key={keyFrameString}
-                inView
-                className="flex flex-col gap-4"
-              >
-                <CodeBlock>
-                  {`.anim { 
-  animation: ${'0.5s'} ${'spring-animation'} linear 
-}`}
-                </CodeBlock>
-                <CodeBlock>{keyFrameString}</CodeBlock>
-              </BlurFade>
-            </>
-          )}
+
+          <Card>
+            <CardBody>
+              {keyFrameString && (
+                <div className="flex flex-col gap-2">
+                  <div className="text-lg">Animation:</div>
+                  <CodeBlock className="h-auto">
+                    {/* TODO: */}
+                    {`animation: ${'0.5s'} 
+spring-animation linear`}
+                  </CodeBlock>
+                  <CodeBlock>{keyFrameString}</CodeBlock>
+                </div>
+              )}
+            </CardBody>
+          </Card>
         </div>
 
         {/* <DisplayInfo /> */}
