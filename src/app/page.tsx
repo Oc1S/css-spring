@@ -10,6 +10,7 @@ import { CodeBlock } from '@/components/code-block';
 import { Config, configAtom } from '@/components/config';
 import { InfoType, resultAtom } from '@/components/display';
 import { Chart } from '@/components/line-chart';
+import { Title } from '@/components/title';
 import { lastOfArray } from '@/utils';
 import {
   generateAnimation,
@@ -139,7 +140,6 @@ function Home() {
 
     const fullString = numbersToKeyFrameString(fullList, { property });
     const linearString = generateLinearFuncString(generator, finalDuration, 30);
-    console.log(linearString, '@@');
 
     return {
       generator,
@@ -169,27 +169,26 @@ function Home() {
 
   return (
     <div className="flex min-h-screen flex-col items-center justify-items-center gap-12 p-8 pt-20">
-      <div className="flex gap-4">
-        <Config />
+      <div className="flex gap-8">
+        <div>
+          <Config />
+        </div>
 
-        {info.keyPoints.length > 0 && (
-          <Card>
-            <CardBody>
-              <ClientOnly>
-                {() => (
-                  <>
-                    <Chart data={info.keyPoints} keys="value" />
-                  </>
-                )}
-              </ClientOnly>
-            </CardBody>
-          </Card>
-        )}
-      </div>
+        <div className="flex flex-col gap-4">
+          {info.keyPoints.length > 0 && (
+            <Card>
+              <CardBody>
+                <ClientOnly>
+                  {() => (
+                    <>
+                      <Chart data={info.keyPoints} keys="value" />
+                    </>
+                  )}
+                </ClientOnly>
+              </CardBody>
+            </Card>
+          )}
 
-      <div className="flex items-center justify-center gap-6">
-        {/* <style>{keyFrameString}</style> */}
-        <div className="flex gap-4">
           {info.generator && (
             <Card>
               <CardBody>
@@ -227,7 +226,7 @@ function Home() {
             <CardBody>
               {keyFrameString && (
                 <div className="flex flex-col gap-2">
-                  <div className="text-lg">Animation:</div>
+                  <Title>Animation:</Title>
                   <CodeBlock className="h-auto">
                     {/* TODO: */}
                     {`animation: ${'0.5s'} 
@@ -239,8 +238,6 @@ spring-animation linear`}
             </CardBody>
           </Card>
         </div>
-
-        {/* <DisplayInfo /> */}
       </div>
     </div>
   );

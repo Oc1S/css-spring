@@ -14,6 +14,8 @@ import { useDebounceCallback } from 'usehooks-ts';
 import { properties, Property, propertyMap } from '@/constants';
 import { lastOfArray } from '@/utils';
 
+import { Title } from '../title';
+
 export type IConfig = {
   duration: number;
   useVisualDuration?: boolean;
@@ -144,38 +146,35 @@ export const Config = () => {
   return (
     <Card>
       <CardBody>
-        <div className="flex items-center gap-12">
-          <div className="flex flex-col gap-4">
+        <Title>Config:</Title>
+        <div className="flex flex-col items-start gap-4">
+          <Checkbox
+            isSelected={config.useVisualDuration}
+            onValueChange={(s) => {
+              setConfig((c) => ({ ...c, useVisualDuration: s }));
+            }}
+          >
+            useVisualDuration
+          </Checkbox>
+
+          <Tooltip
+            content="Sample: Pick only key points, for those who need the generated css string to be short"
+            placement="right"
+            delay={500}
+            closeDelay={0}
+          >
             <Checkbox
-              isSelected={config.useVisualDuration}
+              isSelected={config.useSample}
               onValueChange={(s) => {
-                setConfig((c) => ({ ...c, useVisualDuration: s }));
+                setConfig((c) => ({ ...c, useSample: s }));
               }}
             >
-              useVisualDuration
+              useSample
             </Checkbox>
-
-            <Tooltip
-              content="Sample: Pick only key points, for those who need the generated css string to be short"
-              placement="right"
-              delay={500}
-              closeDelay={0}
-            >
-              <Checkbox
-                isSelected={config.useSample}
-                onValueChange={(s) => {
-                  setConfig((c) => ({ ...c, useSample: s }));
-                }}
-              >
-                useSample
-              </Checkbox>
-            </Tooltip>
-          </div>
-          <div className="flex flex-col items-start gap-4">
-            <PropertyConfig />
-            <KeyFrames />
-            <Duration />
-          </div>
+          </Tooltip>
+          <PropertyConfig />
+          <KeyFrames />
+          <Duration />
         </div>
       </CardBody>
     </Card>
