@@ -12,7 +12,7 @@ import { atom, useAtom } from 'jotai';
 import { useDebounceCallback } from 'usehooks-ts';
 
 import { properties, Property, propertyMap } from '@/constants';
-import { lastOfArray } from '@/utils';
+import { cx, lastOfArray } from '@/utils';
 
 import { Title } from '../title';
 
@@ -50,6 +50,7 @@ const PropertyConfig = () => {
         placeholder="Select target property"
         items={properties.map((p) => ({ key: p, label: p }))}
         onSelectionChange={(p) => {
+          if (!p.currentKey) return;
           setConfig((c) => ({
             ...c,
             property: p.currentKey as Property,
@@ -140,6 +141,16 @@ const Duration = () => {
   );
 };
 
+const Col = ({
+  className,
+  ...rest
+}: React.DetailedHTMLProps<
+  React.HTMLAttributes<HTMLDivElement>,
+  HTMLDivElement
+>) => {
+  return <div className={cx('flex flex-col gap-4', className)} {...rest} />;
+};
+
 export const Config = () => {
   const [config, setConfig] = useAtom(configAtom);
 
@@ -147,34 +158,40 @@ export const Config = () => {
     <Card>
       <CardBody>
         <Title>Config:</Title>
-        <div className="flex flex-col items-start gap-4">
-          <Checkbox
-            isSelected={config.useVisualDuration}
-            onValueChange={(s) => {
-              setConfig((c) => ({ ...c, useVisualDuration: s }));
-            }}
-          >
-            useVisualDuration
-          </Checkbox>
-
-          <Tooltip
-            content="Sample: Pick only key points, for those who need the generated css string to be short"
-            placement="right"
-            delay={500}
-            closeDelay={0}
-          >
+        <div className="flex items-start justify-center gap-8">
+          <Col>
             <Checkbox
-              isSelected={config.useSample}
+              isSelected={config.useVisualDuration}
               onValueChange={(s) => {
-                setConfig((c) => ({ ...c, useSample: s }));
+                setConfig((c) => ({ ...c, useVisualDuration: s }));
               }}
             >
-              useSample
+              Visual Duration
             </Checkbox>
-          </Tooltip>
-          <PropertyConfig />
-          <KeyFrames />
-          <Duration />
+
+            <Tooltip
+              content="Sample: Pick only key points, for those who need the generated css string to be short"
+              placement="right"
+              delay={500}
+              closeDelay={0}
+            >
+              <Checkbox
+                isSelected={config.useSample}
+                onValueChange={(s) => {
+                  setConfig((c) => ({ ...c, useSample: s }));
+                }}
+              >
+                Sample Mode
+              </Checkbox>
+            </Tooltip>
+
+            <Duration />
+          </Col>
+
+          <Col>
+            <PropertyConfig />
+            <KeyFrames />
+          </Col>
         </div>
       </CardBody>
     </Card>

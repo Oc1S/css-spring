@@ -23,7 +23,7 @@ export const CodeBlock = (
         await prettier.format(children, {
           parser: 'css',
           plugins: [parserCss],
-          printWidth: 40,
+          printWidth: 60,
         })
       );
     })();
@@ -34,15 +34,17 @@ export const CodeBlock = (
       key={formatted}
       inView
       className={cx(
-        'group relative h-full max-h-[400px] min-h-5 w-[414px] overflow-scroll break-all rounded bg-[#151515] p-4 text-sm transition',
+        'group relative rounded bg-[#151515] text-sm transition',
         className
       )}
     >
       <Copy
         content={formatted}
-        className="absolute right-2 top-2 opacity-0 transition group-hover:opacity-100 data-[copying=true]:opacity-100"
+        className="absolute right-3 top-2 opacity-0 transition group-hover:opacity-100 data-[copying=true]:opacity-100"
       />
-      <pre>{formatted}</pre>
+      <pre className="max-h-[300px] min-h-5 overflow-scroll p-4">
+        {formatted}
+      </pre>
     </BlurFade>
   );
 };

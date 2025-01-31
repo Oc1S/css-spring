@@ -1,5 +1,3 @@
-import { AnimationGeneratorType } from 'framer-motion';
-
 import { numPattern, Property } from '@/constants';
 
 import { formatNumber, toPercent } from './format';
@@ -37,7 +35,9 @@ export const generateLinearFuncString = (
   const numPoints = Math.max(Math.round(duration / resolution), 2);
   for (let i = 0; i < numPoints; i++) {
     points +=
-      generator.next(duration * progress(0, numPoints - 1, i)).value + ', ';
+      generator
+        .next(duration * progress(0, numPoints - 1, i))
+        .value.toFixed(3) + ', ';
   }
 
   return `linear(${points.substring(0, points.length - 2)})`;

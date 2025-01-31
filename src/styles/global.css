@@ -19,9 +19,9 @@ body {
   font-family: Outfit, Arial, Helvetica, sans-serif;
 }
 
-::-webkit-scrollbar {
+/* ::-webkit-scrollbar {
   display: none;
-}
+} */
 
 pre {
   font-family: mona, 'Courier New', Courier, monospace;

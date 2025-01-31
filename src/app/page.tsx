@@ -8,9 +8,9 @@ import { spring } from 'motion';
 import { ClientOnly } from '@/components/client-only';
 import { CodeBlock } from '@/components/code-block';
 import { Config, configAtom } from '@/components/config';
-import { InfoType, resultAtom } from '@/components/display';
 import { Chart } from '@/components/line-chart';
 import { Title } from '@/components/title';
+import { IResult, resultAtom } from '@/store';
 import { lastOfArray } from '@/utils';
 import {
   generateAnimation,
@@ -78,10 +78,10 @@ function Home() {
   const { property, keyFrames } = config;
 
   const [info, setInfo] = useAtom(resultAtom);
-  const { keyFrameString: keyFrameString } = info;
+  const { keyFrameString } = info;
 
-  const getResult = (useSample: boolean): InfoType => {
-    const list: timedValue[] = [];
+  const getResult = (useSample: boolean): IResult => {
+    const list: TimedValue[] = [];
     let min = Number.MAX_VALUE;
     let max = Number.MIN_VALUE;
 
@@ -128,6 +128,7 @@ function Home() {
         min,
         max,
         duration: finalDuration,
+        linearFuncString: undefined,
         keyFrameString: keyPointString,
         keyPoints: samples.map(({ value, index }) => {
           return {
@@ -147,12 +148,13 @@ function Home() {
       min,
       max,
       duration: finalDuration,
+      linearFuncString: linearString,
       keyFrameString: fullString,
       keyPoints: fullList.map((value, index) => {
         return {
           time: (finalDuration * index) / (list.length - 1),
           value,
-        };
+        } satisfies TimedValue;
       }),
     };
   };
@@ -169,15 +171,14 @@ function Home() {
 
   return (
     <div className="flex min-h-screen flex-col items-center justify-items-center gap-12 p-8 pt-20">
-      <div className="flex gap-8">
-        <div>
-          <Config />
-        </div>
+      <div className="flex flex-col gap-8">
+        <Config />
 
-        <div className="flex flex-col gap-4">
-          {info.keyPoints.length > 0 && (
-            <Card>
-              <CardBody>
+        {info.keyPoints.length > 0 && (
+          <Card>
+            <CardBody>
+              <Title>Chart:</Title>
+              <div className="flex h-[300px] w-[400px] items-center justify-center">
                 <ClientOnly>
                   {() => (
                     <>
@@ -185,59 +186,59 @@ function Home() {
                     </>
                   )}
                 </ClientOnly>
-              </CardBody>
-            </Card>
-          )}
-
-          {info.generator && (
-            <Card>
-              <CardBody>
-                {
-                  <div className="flex flex-col gap-2">
-                    <div className="text-lg">Transition:</div>
-                    {config.useSample ? (
-                      <div className="flex flex-col gap-4 p-4">
-                        linear() func is not compatible with sample mode
-                        <Button
-                          variant="flat"
-                          color="secondary"
-                          onPress={() => {
-                            setConfig((prev) => ({
-                              ...prev,
-                              useSample: false,
-                            }));
-                          }}
-                        >
-                          Disable sample mode
-                        </Button>
-                      </div>
-                    ) : (
-                      <CodeBlock>
-                        {'transition: all ' + info.generator.toString() || ''}
-                      </CodeBlock>
-                    )}
-                  </div>
-                }
-              </CardBody>
-            </Card>
-          )}
-
-          <Card>
-            <CardBody>
-              {keyFrameString && (
-                <div className="flex flex-col gap-2">
-                  <Title>Animation:</Title>
-                  <CodeBlock className="h-auto">
-                    {/* TODO: */}
-                    {`animation: ${'0.5s'} 
-spring-animation linear`}
-                  </CodeBlock>
-                  <CodeBlock>{keyFrameString}</CodeBlock>
-                </div>
-              )}
+              </div>
             </CardBody>
           </Card>
-        </div>
+        )}
+
+        {info.generator && (
+          <Card>
+            <CardBody>
+              {
+                <div className="flex flex-col gap-2">
+                  <div className="text-lg">Transition:</div>
+                  {config.useSample ? (
+                    <div className="flex flex-col gap-4 p-4">
+                      linear() func is not compatible with sample mode
+                      <Button
+                        variant="flat"
+                        color="secondary"
+                        onPress={() => {
+                          setConfig((prev) => ({
+                            ...prev,
+                            useSample: false,
+                          }));
+                        }}
+                      >
+                        Disable sample mode
+                      </Button>
+                    </div>
+                  ) : (
+                    <CodeBlock>
+                      {'transition: all ' + info.linearFuncString || ''}
+                    </CodeBlock>
+                  )}
+                </div>
+              }
+            </CardBody>
+          </Card>
+        )}
+
+        <Card>
+          <CardBody>
+            {keyFrameString && (
+              <div className="flex flex-col gap-2">
+                <Title>Animation:</Title>
+                <CodeBlock className="h-auto">
+                  {/* TODO: */}
+                  {`animation: ${'0.5s'} 
+spring-animation linear`}
+                </CodeBlock>
+                <CodeBlock>{keyFrameString}</CodeBlock>
+              </div>
+            )}
+          </CardBody>
+        </Card>
       </div>
     </div>
   );
