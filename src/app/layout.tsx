@@ -4,9 +4,9 @@ import '../styles/global.css';
 import type { Metadata } from 'next';
 import localFont from 'next/font/local';
 import { Toaster } from 'sonner';
-// Font files can be colocated inside of `app`
+
 const outfitFont = localFont({
-  src: '../assets/outfit-v4-latin-regular.woff2',
+  src: '../assets/outfit.woff2',
   display: 'swap',
 });
 

@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react';
 import {
+  Button,
   Card,
   CardBody,
   Checkbox,
@@ -12,6 +13,7 @@ import { atom, useAtom } from 'jotai';
 import { useDebounceCallback } from 'usehooks-ts';
 
 import { properties, Property, propertyMap } from '@/constants';
+import { GithubIcon } from '@/icons/github';
 import { cx, lastOfArray } from '@/utils';
 
 import { Title } from '../title';
@@ -37,6 +39,8 @@ type KeyLabel<T> = {
   key: T;
   label: string;
 };
+
+const githubLink = 'https://github.com/Oc1S/css-spring';
 
 const PropertyConfig = () => {
   const [config, setConfig] = useAtom(configAtom);
@@ -156,42 +160,55 @@ export const Config = () => {
 
   return (
     <Card>
-      <CardBody>
-        <Title>Config:</Title>
-        <div className="flex items-start justify-center gap-8">
-          <Col>
-            <Checkbox
-              isSelected={config.useVisualDuration}
-              onValueChange={(s) => {
-                setConfig((c) => ({ ...c, useVisualDuration: s }));
-              }}
-            >
-              Visual Duration
-            </Checkbox>
+      <CardBody className="flex items-center justify-center">
+        <div>
+          <Title>Config:</Title>
+          <a
+            href={githubLink}
+            target="_blank"
+            rel="noreferrer"
+            className="absolute right-4 top-4 cursor-pointer rounded-lg p-1 transition hover:opacity-70"
+          >
+            <Button isIconOnly variant="flat">
+              <GithubIcon />
+            </Button>
+          </a>
 
-            <Tooltip
-              content="Sample: Pick only key points, for those who need the generated css string to be short"
-              placement="right"
-              delay={500}
-              closeDelay={0}
-            >
+          <div className="flex items-start justify-center gap-8">
+            <Col>
               <Checkbox
-                isSelected={config.useSample}
+                isSelected={config.useVisualDuration}
                 onValueChange={(s) => {
-                  setConfig((c) => ({ ...c, useSample: s }));
+                  setConfig((c) => ({ ...c, useVisualDuration: s }));
                 }}
               >
-                Sample Mode
+                Visual Duration
               </Checkbox>
-            </Tooltip>
 
-            <Duration />
-          </Col>
+              <Tooltip
+                content="Sample: Pick only key points, for those who need the generated css string to be short"
+                placement="right"
+                delay={500}
+                closeDelay={0}
+              >
+                <Checkbox
+                  isSelected={config.useSample}
+                  onValueChange={(s) => {
+                    setConfig((c) => ({ ...c, useSample: s }));
+                  }}
+                >
+                  Sample Mode
+                </Checkbox>
+              </Tooltip>
 
-          <Col>
-            <PropertyConfig />
-            <KeyFrames />
-          </Col>
+              <Duration />
+            </Col>
+
+            <Col>
+              <PropertyConfig />
+              <KeyFrames />
+            </Col>
+          </div>
         </div>
       </CardBody>
     </Card>

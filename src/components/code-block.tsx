@@ -42,7 +42,7 @@ export const CodeBlock = (
         content={formatted}
         className="absolute right-3 top-2 opacity-0 transition group-hover:opacity-100 data-[copying=true]:opacity-100"
       />
-      <pre className="max-h-[300px] min-h-5 overflow-scroll p-4">
+      <pre className="max-h-[300px] min-h-5 min-w-80 overflow-scroll p-4">
         {formatted}
       </pre>
     </BlurFade>

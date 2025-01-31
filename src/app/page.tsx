@@ -174,71 +174,73 @@ function Home() {
       <div className="flex flex-col gap-8">
         <Config />
 
-        {info.keyPoints.length > 0 && (
-          <Card>
-            <CardBody>
-              <Title>Chart:</Title>
-              <div className="flex h-[300px] w-[400px] items-center justify-center">
-                <ClientOnly>
-                  {() => (
-                    <>
-                      <Chart data={info.keyPoints} keys="value" />
-                    </>
-                  )}
-                </ClientOnly>
-              </div>
-            </CardBody>
-          </Card>
-        )}
-
-        {info.generator && (
-          <Card>
-            <CardBody>
-              {
-                <div className="flex flex-col gap-2">
-                  <div className="text-lg">Transition:</div>
-                  {config.useSample ? (
-                    <div className="flex flex-col gap-4 p-4">
-                      linear() func is not compatible with sample mode
-                      <Button
-                        variant="flat"
-                        color="secondary"
-                        onPress={() => {
-                          setConfig((prev) => ({
-                            ...prev,
-                            useSample: false,
-                          }));
-                        }}
-                      >
-                        Disable sample mode
-                      </Button>
-                    </div>
-                  ) : (
-                    <CodeBlock>
-                      {'transition: all ' + info.linearFuncString || ''}
-                    </CodeBlock>
-                  )}
+        <div className="flex flex-col gap-4 xl:flex-row">
+          {info.keyPoints.length > 0 && (
+            <Card>
+              <CardBody>
+                <Title>Chart:</Title>
+                <div className="flex h-[300px] w-[400px] items-center justify-center">
+                  <ClientOnly>
+                    {() => (
+                      <>
+                        <Chart data={info.keyPoints} keys="value" />
+                      </>
+                    )}
+                  </ClientOnly>
                 </div>
-              }
+              </CardBody>
+            </Card>
+          )}
+
+          {info.generator && (
+            <Card>
+              <CardBody>
+                {
+                  <div className="flex flex-col gap-2">
+                    <div className="text-lg">Transition:</div>
+                    {config.useSample ? (
+                      <div className="flex flex-col gap-4 p-4">
+                        linear() func is not compatible with sample mode
+                        <Button
+                          variant="flat"
+                          color="secondary"
+                          onPress={() => {
+                            setConfig((prev) => ({
+                              ...prev,
+                              useSample: false,
+                            }));
+                          }}
+                        >
+                          Disable sample mode
+                        </Button>
+                      </div>
+                    ) : (
+                      <CodeBlock>
+                        {'transition: all ' + info.linearFuncString || ''}
+                      </CodeBlock>
+                    )}
+                  </div>
+                }
+              </CardBody>
+            </Card>
+          )}
+
+          <Card>
+            <CardBody>
+              {keyFrameString && (
+                <div className="flex flex-col gap-2">
+                  <Title>Animation:</Title>
+                  <CodeBlock className="h-auto">
+                    {/* TODO: */}
+                    {`animation: ${'0.5s'} 
+spring-animation linear`}
+                  </CodeBlock>
+                  <CodeBlock>{keyFrameString}</CodeBlock>
+                </div>
+              )}
             </CardBody>
           </Card>
-        )}
-
-        <Card>
-          <CardBody>
-            {keyFrameString && (
-              <div className="flex flex-col gap-2">
-                <Title>Animation:</Title>
-                <CodeBlock className="h-auto">
-                  {/* TODO: */}
-                  {`animation: ${'0.5s'} 
-spring-animation linear`}
-                </CodeBlock>
-                <CodeBlock>{keyFrameString}</CodeBlock>
-              </div>
-            )}
-          </CardBody>
-        </Card>
+        </div>
       </div>
     </div>
   );
